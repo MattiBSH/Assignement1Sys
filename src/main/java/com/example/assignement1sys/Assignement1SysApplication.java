@@ -1,7 +1,6 @@
 package com.example.assignement1sys;
 
 import mypackage.GeoIPServiceLocator;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import javax.xml.rpc.ServiceException;
@@ -9,29 +8,88 @@ import java.rmi.RemoteException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 @SpringBootApplication
 public class Assignement1SysApplication {
 
     public static void main(String[] args) throws ServiceException, RemoteException {
-        GeoIPServiceLocator geoIPServiceLocator = new GeoIPServiceLocator();
-        String location =geoIPServiceLocator.getGeoIPServiceSoap().getIpLocation("176.20.21.192");
-        System.out.println(location);
+
+        System.out.println(generateMail("176.20.21.192","bob"));
     }
 
-    String generateMail(String ip, String name, String mail) throws ServiceException, RemoteException {
-        boolean isMale=false;
+    static String generateMail(String ip, String name) throws ServiceException, RemoteException {
+        String finishedMail="";
         GeoIPServiceLocator geoIPServiceLocator = new GeoIPServiceLocator();
         String location =geoIPServiceLocator.getGeoIPServiceSoap().getIpLocation(ip);
         String countryID=getTagValue(location,"Country");
         System.out.println(countryID);
-        return null;
+        String gender=getInfo(name,countryID);
+        String title;
+        System.out.println(gender);
+
+        if(gender.contains("male")){
+            title="Mr";
+        }else{
+            System.out.println(gender);
+            title="Ms";
+        }
+        finishedMail="Dear "+title+" "+name+" how are you doing."+" Its so nice that you can get the message all the way from "+countryID;
+        System.out.println("done");
+        return finishedMail;
     }
     public static String getTagValue(String xml, String tagName){
         return xml.split("<"+tagName+">")[1].split("</"+tagName+">")[0];
     }
 
-    String findOutGender(){
+        static  String getInfo(String name, String countryID){
+        /*
+        Maven dependency for JSON-simple:
+            <dependency>
+                <groupId>com.googlecode.json-simple</groupId>
+                <artifactId>json-simple</artifactId>
+                <version>1.1.1</version>
+            </dependency>
+         */
 
-        return "Male";
-    }
+            try {
+
+                URL url = new URL("https://api.genderize.io?name="+name+"&country_id="+countryID);
+
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.connect();
+
+                //Check if connect is made
+                int responseCode = conn.getResponseCode();
+
+                // 200 OK
+                if (responseCode != 200) {
+                    throw new RuntimeException("HttpResponseCode: " + responseCode);
+                } else {
+
+                    StringBuilder informationString = new StringBuilder();
+                    Scanner scanner = new Scanner(url.openStream());
+
+                    while (scanner.hasNext()) {
+                        informationString.append(scanner.nextLine());
+                    }
+                    //Close the scanner
+                    scanner.close();
+
+                    //JSON simple library Setup with Maven is used to convert strings to JSON
+                    JSONParser parse = new JSONParser();
+                    JSONObject dataObject = (JSONObject) parse.parse(String.valueOf(informationString));
+                    return dataObject.get("gender").toString();
+
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+
 }
