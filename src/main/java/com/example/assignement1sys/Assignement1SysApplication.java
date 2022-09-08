@@ -4,9 +4,13 @@ import mypackage.GeoIPServiceLocator;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import javax.xml.rpc.ServiceException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -16,8 +20,13 @@ import org.json.simple.parser.JSONParser;
 public class Assignement1SysApplication {
 
     public static void main(String[] args) throws ServiceException, RemoteException {
+        List<Person> people= new ArrayList<>();
+        people.add(new Person("176.20.21.192","Bob","bob@gmail.com"));
+        people.add(new Person("216.73.162.35","Justin","hoho@gmail.com"));
 
-        System.out.println(generateMail("176.20.21.192","bob"));
+        for (int i = 0; i < people.size(); i++) {
+            generateMail(people.get(i).ip,people.get(i).name);
+        }
     }
 
     static String generateMail(String ip, String name) throws ServiceException, RemoteException {
@@ -34,6 +43,16 @@ public class Assignement1SysApplication {
             title="Ms";
         }
         finishedMail="Dear "+title+" "+name+" how are you doing."+" Its so nice that you can get the message all the way from "+countryID;
+
+        try {
+            FileWriter myWriter = new FileWriter("mail to "+name);
+            myWriter.write(finishedMail);
+            myWriter.close();
+            System.out.println("Successfully wrote to the file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
         return finishedMail;
     }
     public static String getTagValue(String xml, String tagName){
@@ -86,6 +105,7 @@ public class Assignement1SysApplication {
             }
             return null;
         }
+
 
 
 }
