@@ -25,19 +25,15 @@ public class Assignement1SysApplication {
         GeoIPServiceLocator geoIPServiceLocator = new GeoIPServiceLocator();
         String location =geoIPServiceLocator.getGeoIPServiceSoap().getIpLocation(ip);
         String countryID=getTagValue(location,"Country");
-        System.out.println(countryID);
         String gender=getInfo(name,countryID);
         String title;
-        System.out.println(gender);
 
         if(gender.contains("male")){
             title="Mr";
         }else{
-            System.out.println(gender);
             title="Ms";
         }
         finishedMail="Dear "+title+" "+name+" how are you doing."+" Its so nice that you can get the message all the way from "+countryID;
-        System.out.println("done");
         return finishedMail;
     }
     public static String getTagValue(String xml, String tagName){
